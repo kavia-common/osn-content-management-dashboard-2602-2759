@@ -1,0 +1,4 @@
+{
+    "command": "npm install && npx tsc --noEmit && npm test -- --ci",
+    "working_directory": "/home/kavia/workspace/code-generation/osn-content-management-dashboard-2602-2759/react_dashboard_frontend"
+}
