@@ -1,82 +1,111 @@
-# Lightweight React Template for KAVIA
+# OSN Content Management Dashboard (React)
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+A lightweight React dashboard to upload and manage .ts video files and associated metadata for OSN set-top box streaming.
 
-## Features
+- Modern Ocean Professional theme (blue/amber accents)
+- Sidebar + top bar layout, responsive cards and grids
+- Hash-based routing (no extra dependencies)
+- API client with mock mode for local development
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+## Quick Start
 
-## Getting Started
+1) Install dependencies
+- npm install
 
-In the project directory, you can run:
+2) Configure environment
+- cp .env.example .env
+- Edit .env and set REACT_APP_API_BASE to your backend (e.g., http://localhost:8000)
+- Optionally keep REACT_APP_FEATURE_FLAGS=mock-api for mock mode
 
-### `npm start`
+3) Run the app
+- npm start
+- Visit http://localhost:3000
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Create React App will run on port 3000 by default. Do not modify the preview system port.
 
-### `npm test`
+## Environment Variables
 
-Launches the test runner in interactive watch mode.
+- REACT_APP_API_BASE: Base URL for backend REST API; when empty, mock mode is enabled automatically.
+- REACT_APP_WS_URL: Optional WebSocket URL for real-time updates (reserved for future use).
+- REACT_APP_FRONTEND_URL: Public URL of this frontend; used for mock preview links.
+- REACT_APP_FEATURE_FLAGS: Comma-separated flags; include "mock-api" to force mock mode.
+- REACT_APP_NODE_ENV, REACT_APP_ENABLE_SOURCE_MAPS, REACT_APP_PORT, REACT_APP_LOG_LEVEL, REACT_APP_HEALTHCHECK_PATH, REACT_APP_TRUST_PROXY, REACT_APP_EXPERIMENTS_ENABLED, REACT_APP_NEXT_TELEMETRY_DISABLED: Optional build/runtime flags.
 
-### `npm run build`
+See .env.example for a full list.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Routing
 
-## Customization
+This app uses a simple hash-based router:
+- /dashboard
+- /uploads
+- /files
 
-### Colors
+No external routing dependency is used; navigation is handled via window.location.hash.
 
-The main brand colors are defined as CSS variables in `src/App.css`:
+## API Client
 
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
-```
+Located at src/api/client.js:
+- listFiles({ q, status })
+- getFile(id)
+- createUpload({ file, title, description, tags, video, audios, subtitles })
+- updateFile(id, data)
+- deleteFile(id)
+- getPreviewUrl(id)
 
-### Components
+The client automatically switches to an in-memory mock API when:
+- REACT_APP_FEATURE_FLAGS includes "mock-api", or
+- REACT_APP_API_BASE is empty.
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
+This ensures the UI works without a backend.
 
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
+## Pages and Components
 
-## Learn More
+- Pages:
+  - Dashboard: Summary stats and recent files.
+  - Uploads: Upload form and list combined.
+  - Files: List, search, filter, details modal, preview, edit, delete.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Components:
+  - Layout: Sidebar, TopBar
+  - Upload: UploadForm
+  - Files: FileList, FileCard, FileDetailsModal
+  - Common: Badge
 
-### Code Splitting
+## Accessibility
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- All inputs are labeled (label for + id).
+- Modal uses role="dialog", aria-modal, labelledby/ describedby.
+- Focus is moved to close button on modal open.
+- Buttons have aria labels for actions.
 
-### Analyzing the Bundle Size
+## Theme
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Defined via CSS variables in src/index.css and src/App.css with:
+- primary #2563EB
+- secondary #F59E0B
+- error #EF4444
+- background #f9fafb
+- surface #ffffff
+- text #111827
 
-### Making a Progressive Web App
+Modern styling with rounded corners, shadows, gradients, and transitions.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Backend Assumptions
 
-### Advanced Configuration
+Expected REST API endpoints (to be implemented in the FastAPI backend):
+- GET /files?q=&status=
+- GET /files/{id}
+- PATCH /files/{id}
+- DELETE /files/{id}
+- POST /uploads (multipart form: file + metadata JSON fields)
+- GET /files/{id}/preview (returns a stream or a signed URL)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Until the backend is ready, use mock mode.
 
-### Deployment
+## Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- npm test
 
-### `npm run build` fails to minify
+## Build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- npm run build

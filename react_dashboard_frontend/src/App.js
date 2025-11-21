@@ -1,47 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
+import './index.css';
+import Sidebar from './components/Layout/Sidebar';
+import TopBar from './components/Layout/TopBar';
+import Routes from './routes';
+import { getHashPath } from './routes';
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * App root: Provides layout shell (sidebar + topbar), handles theme toggling and hash-based routing.
+ */
 function App() {
   const [theme, setTheme] = useState('light');
+  const [path, setPath] = useState(getHashPath());
 
-  // Effect to apply theme to document element
+  useEffect(() => {
+    document.title = 'OSN Content Dashboard';
+  }, []);
+
+  // apply theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  // hash router listener
+  useEffect(() => {
+    const onHashChange = () => setPath(getHashPath());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const onToggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+
+  const page = useMemo(() => <Routes path={path} />, [path]);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app-shell" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', minHeight: '100vh' }}>
+      <Sidebar />
+      <div style={{ display: 'grid', gridTemplateRows: '64px 1fr', minHeight: '100vh', background: 'linear-gradient(180deg, rgba(37,99,235,.05), rgba(249,250,251,1))' }}>
+        <TopBar theme={theme} onToggleTheme={onToggleTheme} />
+        <main style={{ padding: 24 }}>
+          <div className="container">
+            {page}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

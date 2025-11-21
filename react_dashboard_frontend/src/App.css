@@ -1,104 +1,138 @@
-/* CSS Variables for Theme Management */
+/* Ocean Professional theme for layout and components */
 :root {
-  /* Light theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text-primary: #282c34;
-  --text-secondary: #61dafb;
-  --border-color: #e9ecef;
-  --button-bg: #007bff;
-  --button-text: #ffffff;
+  --primary: #2563EB;
+  --secondary: #F59E0B;
+  --error: #EF4444;
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --ring: rgba(37, 99, 235, 0.35);
 }
 
-[data-theme="dark"] {
-  /* Dark theme colors */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #282c34;
-  --text-primary: #ffffff;
-  --text-secondary: #61dafb;
-  --border-color: #404040;
-  --button-bg: #0056b3;
-  --button-text: #ffffff;
+[data-theme='dark'] {
+  --bg: #0f172a;
+  --surface: #0b1220;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
 }
 
-.App {
-  text-align: center;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+.app-shell {
+  background: var(--bg);
+  color: var(--text);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Sidebar */
+.sidebar {
+  background: linear-gradient(180deg, rgba(37, 99, 235, .1) 0%, rgba(255,255,255,1) 60%);
+  border-right: 1px solid rgba(17,24,39,0.08);
+  padding: 20px 16px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: var(--bg-secondary);
-  min-height: 100vh;
+.sidebar .brand {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease;
-  position: relative;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--primary);
 }
 
-.App-link {
-  color: var(--text-secondary);
-  transition: color 0.3s ease;
-}
-
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid transparent;
+  transition: background .2s ease, border-color .2s ease, transform .12s ease;
 }
 
-.theme-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  opacity: 0.9;
+.nav-link:hover {
+  background: rgba(37, 99, 235, .08);
+  transform: translateX(2px);
 }
 
-.theme-toggle:active {
-  transform: translateY(0);
+.nav-link.active {
+  background: rgba(37, 99, 235, .12);
+  border-color: rgba(37, 99, 235, .25);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Top bar */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid rgba(17,24,39,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
 }
 
-/* Responsive design for mobile */
-@media (max-width: 768px) {
-  .theme-toggle {
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
-    font-size: 12px;
-  }
+.topbar .title {
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* Cards and sections */
+.section {
+  margin-bottom: 24px;
+}
+
+.section h2 {
+  margin: 0 0 8px 0;
+}
+
+.card {
+  padding: 16px;
+}
+
+.stat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.stat .value {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.stat .label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  display: grid;
+  place-items: center;
+}
+
+.modal {
+  width: min(720px, 92vw);
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  border: 1px solid rgba(17,24,39,0.08);
+}
+
+.modal header, .modal footer {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(17,24,39,0.06);
+}
+
+.modal footer {
+  border-top: 1px solid rgba(17,24,39,0.06);
+  border-bottom: none;
+}
+
+.modal .body {
+  padding: 16px;
 }
