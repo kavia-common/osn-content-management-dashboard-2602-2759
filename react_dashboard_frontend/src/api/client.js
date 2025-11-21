@@ -61,7 +61,7 @@ export async function listFiles({ q = '', status = '' } = {}) {
   }
   const params = new URLSearchParams();
   if (q) params.set('q', q);
-  if (status) params.set('status', status);
+  // Note: backend does not support 'status' filter yet
   return http(`/files?${params.toString()}`);
 }
 
@@ -82,6 +82,10 @@ export async function getFile(id) {
 /**
  * PUBLIC_INTERFACE
  * Create upload with multipart form: file (.ts) + metadata JSON fields
+ * FastAPI: POST /api/files/upload with fields:
+ *  - file (UploadFile), title (str), description (str, optional)
+ *  - tags (JSON array string or comma-separated string, optional)
+ *  - streams (JSON array of stream objects, optional) -> we map video/audios/subtitles into streams
  */
 export async function createUpload(payload) {
   if (USE_MOCK) {
@@ -100,20 +104,35 @@ export async function createUpload(payload) {
     return { id, status: 'queued' };
   }
 
+  // Map UI metadata to backend 'streams' array (video/audio/subtitle)
+  const streams = [];
+  if (payload.video && (payload.video.codec || payload.video.resolution || payload.video.bitrate)) {
+    streams.push({ type: 'video', codec: payload.video.codec, bitrate: Number(payload.video.bitrate) || undefined });
+  }
+  (payload.audios || []).forEach(a => {
+    if (a.language || a.codec || a.channels) {
+      streams.push({ type: 'audio', codec: a.codec, language: a.language, channels: Number(a.channels) || undefined });
+    }
+  });
+  (payload.subtitles || []).forEach(s => {
+    if (s.language || s.format) {
+      streams.push({ type: 'subtitle', codec: s.format, language: s.language });
+    }
+  });
+
   const form = new FormData();
   if (payload.file) form.append('file', payload.file);
   form.append('title', payload.title || '');
-  form.append('description', payload.description || '');
-  form.append('tags', payload.tags || '');
-  form.append('video', JSON.stringify(payload.video || {}));
-  form.append('audios', JSON.stringify(payload.audios || []));
-  form.append('subtitles', JSON.stringify(payload.subtitles || []));
-  return http('/uploads', { method: 'POST', body: form });
+  if (payload.description) form.append('description', payload.description);
+  if (payload.tags) form.append('tags', payload.tags);
+  if (streams.length) form.append('streams', JSON.stringify(streams));
+  return http('/files/upload', { method: 'POST', body: form });
 }
 
 /**
  * PUBLIC_INTERFACE
  * Update editable file metadata
+ * FastAPI expects PUT /api/files/{id} with body FileIn
  */
 export async function updateFile(id, data) {
   if (USE_MOCK) {
@@ -123,10 +142,16 @@ export async function updateFile(id, data) {
     mockDB.files[idx] = { ...mockDB.files[idx], ...data };
     return mockDB.files[idx];
   }
+  // Map to FileIn schema; only pass allowed fields if present
+  const body = {};
+  if (typeof data.title !== 'undefined') body.title = data.title;
+  if (typeof data.description !== 'undefined') body.description = data.description;
+  if (typeof data.tags !== 'undefined') body.tags = Array.isArray(data.tags) ? data.tags : String(data.tags).split(',').map(t => t.trim()).filter(Boolean);
+  if (typeof data.streams !== 'undefined') body.streams = data.streams;
   return http(`/files/${encodeURIComponent(id)}`, {
-    method: 'PATCH',
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    body: JSON.stringify(body)
   });
 }
 

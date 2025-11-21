@@ -14,8 +14,12 @@ A lightweight React dashboard to upload and manage .ts video files and associate
 
 2) Configure environment
 - cp .env.example .env
-- Edit .env and set REACT_APP_API_BASE to your backend (e.g., http://localhost:8000)
-- Optionally keep REACT_APP_FEATURE_FLAGS=mock-api for mock mode
+- Ensure these values point to your local backend:
+  - REACT_APP_API_BASE=http://localhost:8000/api
+  - REACT_APP_FRONTEND_URL=http://localhost:3000
+  - REACT_APP_WS_URL=ws://localhost:8000
+- Leave REACT_APP_FEATURE_FLAGS empty to use the real backend. To force mock mode, set:
+  - REACT_APP_FEATURE_FLAGS=mock-api
 
 3) Run the app
 - npm start
@@ -25,11 +29,12 @@ Create React App will run on port 3000 by default. Do not modify the preview sys
 
 ## Environment Variables
 
-- REACT_APP_API_BASE: Base URL for backend REST API; when empty, mock mode is enabled automatically.
+- REACT_APP_API_BASE: Base URL for backend REST API; when empty, mock mode is enabled automatically. For FastAPI scaffold use http://localhost:8000/api
 - REACT_APP_WS_URL: Optional WebSocket URL for real-time updates (reserved for future use).
 - REACT_APP_FRONTEND_URL: Public URL of this frontend; used for mock preview links.
 - REACT_APP_FEATURE_FLAGS: Comma-separated flags; include "mock-api" to force mock mode.
-- REACT_APP_NODE_ENV, REACT_APP_ENABLE_SOURCE_MAPS, REACT_APP_PORT, REACT_APP_LOG_LEVEL, REACT_APP_HEALTHCHECK_PATH, REACT_APP_TRUST_PROXY, REACT_APP_EXPERIMENTS_ENABLED, REACT_APP_NEXT_TELEMETRY_DISABLED: Optional build/runtime flags.
+- Other optional build/runtime flags:
+  REACT_APP_NODE_ENV, REACT_APP_ENABLE_SOURCE_MAPS, REACT_APP_PORT, REACT_APP_LOG_LEVEL, REACT_APP_HEALTHCHECK_PATH, REACT_APP_TRUST_PROXY, REACT_APP_EXPERIMENTS_ENABLED, REACT_APP_NEXT_TELEMETRY_DISABLED
 
 See .env.example for a full list.
 
@@ -45,12 +50,12 @@ No external routing dependency is used; navigation is handled via window.locatio
 ## API Client
 
 Located at src/api/client.js:
-- listFiles({ q, status })
+- listFiles({ q })
 - getFile(id)
-- createUpload({ file, title, description, tags, video, audios, subtitles })
-- updateFile(id, data)
-- deleteFile(id)
-- getPreviewUrl(id)
+- createUpload({ file, title, description, tags, video, audios, subtitles }) -> POST /api/files/upload
+- updateFile(id, data) -> PUT /api/files/{id}
+- deleteFile(id) -> DELETE /api/files/{id}
+- getPreviewUrl(id) -> GET /api/files/{id}/preview (supports Range)
 
 The client automatically switches to an in-memory mock API when:
 - REACT_APP_FEATURE_FLAGS includes "mock-api", or
@@ -90,17 +95,28 @@ Defined via CSS variables in src/index.css and src/App.css with:
 
 Modern styling with rounded corners, shadows, gradients, and transitions.
 
-## Backend Assumptions
+## End-to-End Validation (Local)
 
-Expected REST API endpoints (to be implemented in the FastAPI backend):
-- GET /files?q=&status=
-- GET /files/{id}
-- PATCH /files/{id}
-- DELETE /files/{id}
-- POST /uploads (multipart form: file + metadata JSON fields)
-- GET /files/{id}/preview (returns a stream or a signed URL)
+Backend (FastAPI):
+1) cd fastapi-backend_workspace/fastapi-backend
+2) cp .env.example .env  # or use the provided .env
+3) pip install -r requirements.txt
+4) uvicorn app.main:app --host 0.0.0.0 --port 8000
+5) curl http://localhost:8000/health  # {"status":"ok"}
 
-Until the backend is ready, use mock mode.
+Frontend (React):
+1) cd osn-content-management-dashboard-2602-2759/react_dashboard_frontend
+2) cp .env.example .env  # or use the provided .env
+3) Ensure REACT_APP_API_BASE=http://localhost:8000/api
+4) npm install
+5) npm start
+6) Visit http://localhost:3000
+
+Flow:
+- Upload: Navigate to /uploads, pick a .ts file, fill metadata, click Upload.
+- List: See newly uploaded item in the list.
+- Details: Open details modal from card actions.
+- Preview: Click Preview to open GET /api/files/{id}/preview. Player should request with Range header (browser will handle).
 
 ## Testing
 
